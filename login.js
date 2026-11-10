@@ -10,9 +10,9 @@ const email = document.getElementById("email");
 const password = document.getElementById("password");
 const message = document.getElementById("message");
 
-function showSuccess(result) {
-  message.textContent = "Logged in as " + result.user.email;
-}
+function showSuccess() {
+    window.location.href = "dashboard.html";
+  }
 
 function showError(error) {
   message.textContent = error.message;
