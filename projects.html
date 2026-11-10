@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Projects - Freelance Manager</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Projects</h1>
+  <p><a href="dashboard.html">Back to dashboard</a></p>
+
+  <select id="clientSelect"></select><br><br>
+  <input type="text" id="title" placeholder="Project title"><br><br>
+  <input type="number" id="price" placeholder="Price (SAR)"><br><br>
+  <input type="date" id="deadline"><br><br>
+  <select id="status">
+    <option>Not started</option>
+    <option>In progress</option>
+    <option>Done</option>
+  </select><br><br>
+  <button id="addBtn">Add project</button>
+
+  <ul id="projectList"></ul>
+  <script type="module" src="projects.js"></script>
+</body>
+</html>
