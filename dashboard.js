@@ -28,16 +28,34 @@ async function loadSummary(user) {
 
   let paid = 0;
   let unpaid = 0;
+  const months = {};
+
   invoicesSnap.forEach((d) => {
     const inv = d.data();
+
     if (inv.status === "Paid") {
       paid += inv.amount;
     } else {
       unpaid += inv.amount;
     }
+
+    if (inv.dueDate) {
+      const month = inv.dueDate.slice(0, 7);
+      if (!months[month]) {
+        months[month] = { paid: 0, unpaid: 0 };
+      }
+      if (inv.status === "Paid") {
+        months[month].paid += inv.amount;
+      } else {
+        months[month].unpaid += inv.amount;
+      }
+    }
   });
+
   document.getElementById("totalPaid").textContent = paid;
   document.getElementById("totalUnpaid").textContent = unpaid;
+
+  drawChart(months);
 
   const active = [];
   projectsSnap.forEach((d) => {
@@ -56,6 +74,37 @@ async function loadSummary(user) {
     const li = document.createElement("li");
     li.textContent = p.deadline + " - " + p.title + " (" + p.clientName + ")";
     list.appendChild(li);
+  });
+}
+
+function drawChart(months) {
+  const labels = Object.keys(months).sort();
+
+  new Chart(document.getElementById("incomeChart"), {
+    type: "bar",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: "Paid",
+          data: labels.map((m) => months[m].paid),
+          backgroundColor: "#16a34a"
+        },
+        {
+          label: "Unpaid",
+          data: labels.map((m) => months[m].unpaid),
+          backgroundColor: "#dc2626"
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: { stacked: true },
+        y: { stacked: true, beginAtZero: true }
+      }
+    }
   });
 }
 

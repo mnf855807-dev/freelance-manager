@@ -293,3 +293,7 @@ label {
     color: var(--muted);
     margin-bottom: 4px;
   }
+  .chart-box {
+    position: relative;
+    height: 280px;
+  }
