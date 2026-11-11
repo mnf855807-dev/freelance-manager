@@ -11,6 +11,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 let currentUser;
+let allClients = [];
 
 onAuthStateChanged(auth, (user) => {
   if (user) {
@@ -22,21 +23,34 @@ onAuthStateChanged(auth, (user) => {
 });
 
 async function loadClients() {
-  const list = document.getElementById("clientList");
-  list.innerHTML = "";
-
   const q = query(collection(db, "clients"), where("userId", "==", currentUser.uid));
   const snapshot = await getDocs(q);
 
+  allClients = [];
   snapshot.forEach((d) => {
-    const client = d.data();
+    allClients.push({ id: d.id, ...d.data() });
+  });
+
+  showClients();
+}
+
+function showClients() {
+  const list = document.getElementById("clientList");
+  list.innerHTML = "";
+
+  const text = document.getElementById("search").value.toLowerCase();
+
+  allClients.forEach((client) => {
+    const searchable = (client.name + " " + client.phone + " " + client.email).toLowerCase();
+    if (!searchable.includes(text)) return;
+
     const li = document.createElement("li");
     li.textContent = client.name + " - " + client.phone + " - " + client.email + " ";
 
     const deleteBtn = document.createElement("button");
     deleteBtn.textContent = "Delete";
     deleteBtn.onclick = async () => {
-      await deleteDoc(doc(db, "clients", d.id));
+      await deleteDoc(doc(db, "clients", client.id));
       loadClients();
     };
 
@@ -44,6 +58,8 @@ async function loadClients() {
     list.appendChild(li);
   });
 }
+
+document.getElementById("search").oninput = showClients;
 
 document.getElementById("addBtn").onclick = async () => {
   const name = document.getElementById("name");
