@@ -6,17 +6,34 @@
   <title>Clients - Freelance Manager</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <h1>Clients</h1>
-  <p><a href="dashboard.html">Back to dashboard</a></p>
+<body class="app">
+  <div class="sidebar">
+    <div class="brand">Freelance Manager</div>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="clients.html" class="active">Clients</a>
+    <a href="projects.html">Projects</a>
+    <a href="invoices.html">Invoices</a>
+  </div>
 
-  <input type="text" id="name" placeholder="Name"><br><br>
-  <input type="text" id="phone" placeholder="Phone"><br><br>
-  <input type="email" id="email" placeholder="Email"><br><br>
-  <button id="addBtn">Add client</button>
+  <div class="main">
+    <h1>Clients</h1>
+    <p class="sub">People and companies you work for.</p>
 
-  <input type="text" id="search" placeholder="Search clients...">
-  <ul id="clientList"></ul>
+    <div class="card">
+      <h2>Add client</h2>
+      <input type="text" id="name" placeholder="Name">
+      <input type="text" id="phone" placeholder="Phone">
+      <input type="email" id="email" placeholder="Email">
+      <button id="addBtn">Add client</button>
+    </div>
+
+    <div class="card">
+      <h2>All clients</h2>
+      <input type="text" id="search" placeholder="Search clients...">
+      <ul id="clientList"></ul>
+    </div>
+  </div>
+
   <script type="module" src="clients.js"></script>
 </body>
 </html>

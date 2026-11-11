@@ -6,20 +6,40 @@
   <title>Invoices - Freelance Manager</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <h1>Invoices</h1>
-  <p><a href="dashboard.html">Back to dashboard</a></p>
+<body class="app">
+  <div class="sidebar">
+    <div class="brand">Freelance Manager</div>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="clients.html">Clients</a>
+    <a href="projects.html">Projects</a>
+    <a href="invoices.html" class="active">Invoices</a>
+  </div>
 
-  <select id="projectSelect"></select><br><br>
-  <input type="number" id="amount" placeholder="Amount (SAR)"><br><br>
-  <input type="date" id="dueDate"><br><br>
-  <select id="status">
-    <option>Unpaid</option>
-    <option>Paid</option>
-  </select><br><br>
-  <button id="addBtn">Add invoice</button>
+  <div class="main">
+    <h1>Invoices</h1>
+    <p class="sub">See what is paid and what is still owed.</p>
 
-  <ul id="invoiceList"></ul>
+    <div class="card">
+      <h2>Add invoice</h2>
+      <label>Project</label>
+      <select id="projectSelect"></select>
+      <input type="number" id="amount" placeholder="Amount (SAR)">
+      <label>Due date</label>
+      <input type="date" id="dueDate">
+      <label>Status</label>
+      <select id="status">
+        <option>Unpaid</option>
+        <option>Paid</option>
+      </select>
+      <button id="addBtn">Add invoice</button>
+    </div>
+
+    <div class="card">
+      <h2>All invoices</h2>
+      <ul id="invoiceList"></ul>
+    </div>
+  </div>
+
   <script type="module" src="invoices.js"></script>
 </body>
 </html>

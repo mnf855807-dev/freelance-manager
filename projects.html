@@ -6,22 +6,42 @@
   <title>Projects - Freelance Manager</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <h1>Projects</h1>
-  <p><a href="dashboard.html">Back to dashboard</a></p>
+<body class="app">
+  <div class="sidebar">
+    <div class="brand">Freelance Manager</div>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="clients.html">Clients</a>
+    <a href="projects.html" class="active">Projects</a>
+    <a href="invoices.html">Invoices</a>
+  </div>
 
-  <select id="clientSelect"></select><br><br>
-  <input type="text" id="title" placeholder="Project title"><br><br>
-  <input type="number" id="price" placeholder="Price (SAR)"><br><br>
-  <input type="date" id="deadline"><br><br>
-  <select id="status">
-    <option>Not started</option>
-    <option>In progress</option>
-    <option>Done</option>
-  </select><br><br>
-  <button id="addBtn">Add project</button>
+  <div class="main">
+    <h1>Projects</h1>
+    <p class="sub">Track the work you do for each client.</p>
 
-  <ul id="projectList"></ul>
+    <div class="card">
+      <h2>Add project</h2>
+      <label>Client</label>
+      <select id="clientSelect"></select>
+      <input type="text" id="title" placeholder="Project title">
+      <input type="number" id="price" placeholder="Price (SAR)">
+      <label>Deadline</label>
+      <input type="date" id="deadline">
+      <label>Status</label>
+      <select id="status">
+        <option>Not started</option>
+        <option>In progress</option>
+        <option>Done</option>
+      </select>
+      <button id="addBtn">Add project</button>
+    </div>
+
+    <div class="card">
+      <h2>All projects</h2>
+      <ul id="projectList"></ul>
+    </div>
+  </div>
+
   <script type="module" src="projects.js"></script>
 </body>
 </html>
