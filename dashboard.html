@@ -6,24 +6,48 @@
   <title>Dashboard - Freelance Manager</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <h1>Dashboard</h1>
-  <p>Logged in as: <span id="userEmail"></span></p>
+<body class="app">
+  <div class="sidebar">
+    <div class="brand">Freelance Manager</div>
+    <a href="dashboard.html" class="active">Dashboard</a>
+    <a href="clients.html">Clients</a>
+    <a href="projects.html">Projects</a>
+    <a href="invoices.html">Invoices</a>
+    <div class="bottom">
+      <div class="user" id="userEmail"></div>
+      <button id="logoutBtn">Logout</button>
+    </div>
+  </div>
 
-  <p><a href="clients.html">Clients</a></p>
-  <p><a href="projects.html">Projects</a></p>
-  <p><a href="invoices.html">Invoices</a></p>
+  <div class="main">
+    <h1>Dashboard</h1>
+    <p class="sub">Your freelance business at a glance.</p>
 
-  <h2>Summary</h2>
-  <p>Total earned (paid): <span id="totalPaid">0</span> SAR</p>
-  <p>Money still owed (unpaid): <span id="totalUnpaid">0</span> SAR</p>
-  <p>Clients: <span id="clientCount">0</span></p>
-  <p>Active projects: <span id="activeCount">0</span></p>
+    <div class="stats">
+      <div class="stat">
+        <div class="label">Total earned</div>
+        <div class="value green"><span id="totalPaid">0</span> SAR</div>
+      </div>
+      <div class="stat">
+        <div class="label">Still owed</div>
+        <div class="value red"><span id="totalUnpaid">0</span> SAR</div>
+      </div>
+      <div class="stat">
+        <div class="label">Clients</div>
+        <div class="value" id="clientCount">0</div>
+      </div>
+      <div class="stat">
+        <div class="label">Active projects</div>
+        <div class="value" id="activeCount">0</div>
+      </div>
+    </div>
 
-  <h2>Upcoming deadlines</h2>
-  <ul id="deadlineList"></ul>
+    <div class="card">
+      <h2>Upcoming deadlines</h2>
+      <ul id="deadlineList"></ul>
+    </div>
+  </div>
 
-  <button id="logoutBtn">Logout</button>
   <script type="module" src="dashboard.js"></script>
 </body>
 </html>
