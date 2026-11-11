@@ -9,9 +9,20 @@
 <body>
   <h1>Dashboard</h1>
   <p>Logged in as: <span id="userEmail"></span></p>
+
   <p><a href="clients.html">Clients</a></p>
   <p><a href="projects.html">Projects</a></p>
   <p><a href="invoices.html">Invoices</a></p>
+
+  <h2>Summary</h2>
+  <p>Total earned (paid): <span id="totalPaid">0</span> SAR</p>
+  <p>Money still owed (unpaid): <span id="totalUnpaid">0</span> SAR</p>
+  <p>Clients: <span id="clientCount">0</span></p>
+  <p>Active projects: <span id="activeCount">0</span></p>
+
+  <h2>Upcoming deadlines</h2>
+  <ul id="deadlineList"></ul>
+
   <button id="logoutBtn">Logout</button>
   <script type="module" src="dashboard.js"></script>
 </body>
