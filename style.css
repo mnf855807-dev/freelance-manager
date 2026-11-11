@@ -297,3 +297,54 @@ label {
     position: relative;
     height: 280px;
   }
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  
+  .row .title {
+    font-weight: 600;
+  }
+  
+  .row .meta {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 2px;
+  }
+  
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  
+  .badge.green {
+    background: #dcfce7;
+    color: #166534;
+  }
+  
+  .badge.red {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+  
+  .badge.blue {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+  
+  .badge.gray {
+    background: #f3f4f6;
+    color: #374151;
+  }

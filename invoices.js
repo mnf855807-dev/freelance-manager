@@ -39,37 +39,58 @@ async function loadProjects() {
 }
 
 async function loadInvoices() {
-  const list = document.getElementById("invoiceList");
-  list.innerHTML = "";
-
-  const q = query(collection(db, "invoices"), where("userId", "==", currentUser.uid));
-  const snapshot = await getDocs(q);
-
-  snapshot.forEach((d) => {
-    const inv = d.data();
-    const li = document.createElement("li");
-    li.textContent = inv.projectTitle + " - " + inv.amount + " SAR - due " + inv.dueDate + " - " + inv.status + " ";
-
-    const toggleBtn = document.createElement("button");
-    toggleBtn.textContent = inv.status === "Paid" ? "Mark unpaid" : "Mark paid";
-    toggleBtn.onclick = async () => {
-      const newStatus = inv.status === "Paid" ? "Unpaid" : "Paid";
-      await updateDoc(doc(db, "invoices", d.id), { status: newStatus });
-      loadInvoices();
-    };
-
-    const deleteBtn = document.createElement("button");
-    deleteBtn.textContent = "Delete";
-    deleteBtn.onclick = async () => {
-      await deleteDoc(doc(db, "invoices", d.id));
-      loadInvoices();
-    };
-
-    li.appendChild(toggleBtn);
-    li.appendChild(deleteBtn);
-    list.appendChild(li);
-  });
-}
+    const list = document.getElementById("invoiceList");
+    list.innerHTML = "";
+  
+    const q = query(collection(db, "invoices"), where("userId", "==", currentUser.uid));
+    const snapshot = await getDocs(q);
+  
+    snapshot.forEach((d) => {
+      const inv = d.data();
+      const li = document.createElement("li");
+      li.className = "row";
+  
+      const info = document.createElement("div");
+      const title = document.createElement("div");
+      title.className = "title";
+      title.textContent = inv.projectTitle;
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      meta.textContent = inv.amount + " SAR - due " + inv.dueDate;
+      info.appendChild(title);
+      info.appendChild(meta);
+  
+      const actions = document.createElement("div");
+      actions.className = "actions";
+  
+      const badge = document.createElement("span");
+      badge.className = "badge " + (inv.status === "Paid" ? "green" : "red");
+      badge.textContent = inv.status;
+  
+      const toggleBtn = document.createElement("button");
+      toggleBtn.className = "secondary";
+      toggleBtn.textContent = inv.status === "Paid" ? "Mark unpaid" : "Mark paid";
+      toggleBtn.onclick = async () => {
+        const newStatus = inv.status === "Paid" ? "Unpaid" : "Paid";
+        await updateDoc(doc(db, "invoices", d.id), { status: newStatus });
+        loadInvoices();
+      };
+  
+      const deleteBtn = document.createElement("button");
+      deleteBtn.textContent = "Delete";
+      deleteBtn.onclick = async () => {
+        await deleteDoc(doc(db, "invoices", d.id));
+        loadInvoices();
+      };
+  
+      actions.appendChild(badge);
+      actions.appendChild(toggleBtn);
+      actions.appendChild(deleteBtn);
+      li.appendChild(info);
+      li.appendChild(actions);
+      list.appendChild(li);
+    });
+  }
 
 document.getElementById("addBtn").onclick = async () => {
   const select = document.getElementById("projectSelect");

@@ -47,7 +47,25 @@ async function loadProjects() {
   snapshot.forEach((d) => {
     const p = d.data();
     const li = document.createElement("li");
-    li.textContent = p.title + " - " + p.clientName + " - " + p.price + " SAR - " + p.deadline + " - " + p.status + " ";
+    li.className = "row";
+
+    const info = document.createElement("div");
+    const title = document.createElement("div");
+    title.className = "title";
+    title.textContent = p.title;
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    meta.textContent = p.clientName + " - " + p.price + " SAR - due " + p.deadline;
+    info.appendChild(title);
+    info.appendChild(meta);
+
+    const actions = document.createElement("div");
+    actions.className = "actions";
+
+    const colors = { "Done": "green", "In progress": "blue", "Not started": "gray" };
+    const badge = document.createElement("span");
+    badge.className = "badge " + colors[p.status];
+    badge.textContent = p.status;
 
     const deleteBtn = document.createElement("button");
     deleteBtn.textContent = "Delete";
@@ -56,7 +74,10 @@ async function loadProjects() {
       loadProjects();
     };
 
-    li.appendChild(deleteBtn);
+    actions.appendChild(badge);
+    actions.appendChild(deleteBtn);
+    li.appendChild(info);
+    li.appendChild(actions);
     list.appendChild(li);
   });
 }
