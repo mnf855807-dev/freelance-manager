@@ -1,41 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" dir="ltr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Clients - Freelance Manager</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body class="app">
-  <div class="sidebar">
-    <div class="brand">Freelance Manager</div>
-    <a href="dashboard.html">Dashboard</a>
-    <a href="clients.html" class="active">Clients</a>
-    <a href="projects.html">Projects</a>
-    <a href="invoices.html">Invoices</a>
-  </div>
-
-  <div class="main">
-    <h1>Clients</h1>
-    <p class="sub">People and companies you work for.</p>
-
-    <div class="card">
-      <h2>Add client</h2>
-      <input type="text" id="name" placeholder="Name">
-      <input type="text" id="phone" placeholder="Phone">
-      <input type="email" id="email" placeholder="Email">
-      <button id="addBtn">Add client</button>
-    </div>
-
-    <div class="card">
-      <h2>All clients</h2>
-      <input type="text" id="search" placeholder="Search clients...">
-      <ul id="clientList"></ul>
-    </div>
-  </div>
-
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clients — Freelance Manager</title>
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
   <script type="module" src="clients.js"></script>
-  <script src="theme.js"></script>
-  <script src="lang.js"></script>
+</head>
+<body>
+  <div id="app"></div>
 </body>
 </html>
