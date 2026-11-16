@@ -296,6 +296,16 @@ label {
   .chart-box {
     position: relative;
     height: 280px;
+    width: 100%;
+    direction: ltr;
+  }
+  
+  .card {
+    overflow: hidden;
+  }
+  
+  .main {
+    min-width: 0;
   }
   .row {
     display: flex;
@@ -382,4 +392,43 @@ label {
   
   [data-theme="dark"] .card li {
     background: #0f172a;
+  }
+  #langBtn {
+    position: fixed;
+    top: 16px;
+    right: 150px;
+    z-index: 10;
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+  
+  [dir="rtl"] #themeBtn {
+    right: auto;
+    left: 16px;
+  }
+  
+  [dir="rtl"] #langBtn {
+    right: auto;
+    left: 150px;
+  }
+  
+  [dir="rtl"] .sidebar {
+    left: auto;
+    right: 0;
+  }
+  
+  [dir="rtl"] .main {
+    margin-left: 0;
+    margin-right: 230px;
+  }
+  
+  [dir="rtl"] li button {
+    margin-left: 0;
+    margin-right: 8px;
+  }
+  
+  @media (max-width: 760px) {
+    [dir="rtl"] .main {
+      margin-right: 0;
+    }
   }
