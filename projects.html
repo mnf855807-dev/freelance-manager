@@ -1,49 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" dir="ltr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Projects - Freelance Manager</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body class="app">
-  <div class="sidebar">
-    <div class="brand">Freelance Manager</div>
-    <a href="dashboard.html">Dashboard</a>
-    <a href="clients.html">Clients</a>
-    <a href="projects.html" class="active">Projects</a>
-    <a href="invoices.html">Invoices</a>
-  </div>
-
-  <div class="main">
-    <h1>Projects</h1>
-    <p class="sub">Track the work you do for each client.</p>
-
-    <div class="card">
-      <h2>Add project</h2>
-      <label>Client</label>
-      <select id="clientSelect"></select>
-      <input type="text" id="title" placeholder="Project title">
-      <input type="number" id="price" placeholder="Price (SAR)">
-      <label>Deadline</label>
-      <input type="date" id="deadline">
-      <label>Status</label>
-      <select id="status">
-        <option>Not started</option>
-        <option>In progress</option>
-        <option>Done</option>
-      </select>
-      <button id="addBtn">Add project</button>
-    </div>
-
-    <div class="card">
-      <h2>All projects</h2>
-      <ul id="projectList"></ul>
-    </div>
-  </div>
-
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Projects — Freelance Manager</title>
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
   <script type="module" src="projects.js"></script>
-  <script src="theme.js"></script>
-  <script src="lang.js"></script>
+</head>
+<body>
+  <div id="app"></div>
 </body>
 </html>

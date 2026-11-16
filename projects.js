@@ -9,100 +9,131 @@ import {
   query,
   where
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  $, t, icon, escapeHtml, number, moneyText, dateText, badge, empty,
+  heading, field, selectField, startShell, showToast
+} from "./shell.js";
 
 let currentUser;
+let clients = [];
 
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    currentUser = user;
-    loadClients();
-    loadProjects();
-  } else {
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
     window.location.href = "login.html";
+    return;
   }
+  currentUser = user;
+  startShell("projects", user);
+
+  const snapshot = await getDocs(query(collection(db, "clients"), where("userId", "==", user.uid)));
+  clients = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+  loadProjects();
 });
 
-async function loadClients() {
-  const select = document.getElementById("clientSelect");
-  select.innerHTML = "";
-
-  const q = query(collection(db, "clients"), where("userId", "==", currentUser.uid));
-  const snapshot = await getDocs(q);
-
-  snapshot.forEach((d) => {
-    const option = document.createElement("option");
-    option.value = d.id;
-    option.textContent = d.data().name;
-    select.appendChild(option);
-  });
-}
-
 async function loadProjects() {
-  const list = document.getElementById("projectList");
-  list.innerHTML = "";
-
   const q = query(collection(db, "projects"), where("userId", "==", currentUser.uid));
   const snapshot = await getDocs(q);
+  const projects = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+  projects.sort((a, b) => (a.deadline || "").localeCompare(b.deadline || ""));
+  showPage(projects);
+}
 
-  snapshot.forEach((d) => {
-    const p = d.data();
-    const li = document.createElement("li");
-    li.className = "row";
+function showPage(projects) {
+  const rows = projects.map((p, i) => `
+    <tr>
+      <td>
+        <div class="table-project">
+          <span class="project-symbol ${i % 3 === 1 ? "blue" : i % 3 === 2 ? "amber" : ""}">${icon("link", 15)}</span>
+          <strong>${escapeHtml(p.title)}</strong>
+        </div>
+      </td>
+      <td>${escapeHtml(p.clientName)}</td>
+      <td class="amount">${moneyText(p.price)}</td>
+      <td>${dateText(p.deadline)}</td>
+      <td>${badge(p.status)}</td>
+      <td>
+        <button class="button ghost small danger" data-id="${p.id}" aria-label="${t("delete")}">${icon("trash", 15)}</button>
+      </td>
+    </tr>
+  `).join("");
 
-    const info = document.createElement("div");
-    const title = document.createElement("div");
-    title.className = "title";
-    title.textContent = p.title;
-    const meta = document.createElement("div");
-    meta.className = "meta";
-    meta.textContent = p.clientName + " - " + p.price + " SAR - due " + p.deadline;
-    info.appendChild(title);
-    info.appendChild(meta);
+  const list = projects.length
+    ? `<div class="table-wrap">
+         <table class="data-table">
+           <thead>
+             <tr><th>${t("project")}</th><th>${t("client")}</th><th>${t("price")}</th><th>${t("deadline")}</th><th>${t("status")}</th><th>${t("actions")}</th></tr>
+           </thead>
+           <tbody>${rows}</tbody>
+         </table>
+       </div>`
+    : empty("noProjects", "noProjectsText", "projects");
 
-    const actions = document.createElement("div");
-    actions.className = "actions";
+  const clientOptions = clients.map((c) => ({ value: c.id, label: c.name }));
+  const noClients = clients.length === 0;
 
-    const colors = { "Done": "green", "In progress": "blue", "Not started": "gray" };
-    const badge = document.createElement("span");
-    badge.className = "badge " + colors[p.status];
-    badge.textContent = p.status;
+  $("#mainContent").innerHTML = `
+    ${heading(t("projectsHeading"), t("projectsSub"))}
+    <div class="page-layout">
+      <section class="panel">
+        <div class="list-tools">
+          <h2>${t("allProjects")} <span class="count-pill">${number(projects.length)}</span></h2>
+        </div>
+        ${list}
+      </section>
+      <aside class="panel form-panel">
+        <h2>${t("addProject")}</h2>
+        <p>${t("addProjectSub")}</p>
+        <form class="form-grid" id="projectForm">
+          ${selectField("client", "clientId", clientOptions, "selectClient")}
+          ${field("projectTitle", "title", "text", t("projectPlaceholder"), 'required maxlength="100"')}
+          ${field("price", "price", "number", "0.00", 'required min="0" step="0.01"')}
+          ${field("deadline", "deadline", "date", "", "required")}
+          <div class="field">
+            <label for="projectStatus">${t("status")}</label>
+            <select id="projectStatus" name="status">
+              <option value="Not started">${t("notStarted")}</option>
+              <option value="In progress">${t("inProgress")}</option>
+              <option value="Done">${t("done")}</option>
+            </select>
+          </div>
+          ${noClients ? `<div class="form-note">${t("needClient")}</div>` : ""}
+          <button class="button primary" type="submit" ${noClients ? "disabled" : ""}>${icon("plus", 15)} ${t("saveProject")}</button>
+        </form>
+      </aside>
+    </div>
+  `;
 
-    const deleteBtn = document.createElement("button");
-    deleteBtn.textContent = "Delete";
-    deleteBtn.onclick = async () => {
-      await deleteDoc(doc(db, "projects", d.id));
-      loadProjects();
+  $("#projectForm").onsubmit = addProject;
+
+  document.querySelectorAll("button[data-id]").forEach((button) => {
+    button.onclick = async () => {
+      if (!confirm(t("deleteConfirm"))) return;
+      await deleteDoc(doc(db, "projects", button.dataset.id));
+      await loadProjects();
+      showToast(t("deleted"));
     };
-
-    actions.appendChild(badge);
-    actions.appendChild(deleteBtn);
-    li.appendChild(info);
-    li.appendChild(actions);
-    list.appendChild(li);
   });
 }
 
-document.getElementById("addBtn").onclick = async () => {
-  const select = document.getElementById("clientSelect");
-  const title = document.getElementById("title");
-  const price = document.getElementById("price");
-  const deadline = document.getElementById("deadline");
-  const status = document.getElementById("status");
+async function addProject(event) {
+  event.preventDefault();
+  const form = event.target;
+  if (!form.reportValidity()) return;
 
-  if (title.value === "" || select.value === "") return;
+  const values = Object.fromEntries(new FormData(form));
+  const client = clients.find((c) => c.id === values.clientId);
 
   await addDoc(collection(db, "projects"), {
-    clientId: select.value,
-    clientName: select.options[select.selectedIndex].text,
-    title: title.value,
-    price: Number(price.value),
-    deadline: deadline.value,
-    status: status.value,
+    clientId: values.clientId,
+    clientName: client.name,
+    title: values.title.trim(),
+    price: Number(values.price),
+    deadline: values.deadline,
+    status: values.status,
     userId: currentUser.uid
   });
 
-  title.value = "";
-  price.value = "";
-  deadline.value = "";
-  loadProjects();
-};
+  await loadProjects();
+  showToast(t("addedProject"));
+}
