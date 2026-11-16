@@ -213,3 +213,12 @@ main { max-width: 1540px; margin: 0 auto; padding: 34px var(--page-padding) 42px
     width: auto;
   }
 }
+.badge.partial {
+  color: #b45309;
+  background: #fef3c7;
+}
+
+[data-theme="dark"] .badge.partial {
+  color: #fbbf24;
+  background: #3a2f12;
+}

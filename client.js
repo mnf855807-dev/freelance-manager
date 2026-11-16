@@ -82,11 +82,28 @@ function statCard(label, value, iconName, color) {
   `;
 }
 
-function paymentOf(project, invoices) {
-  const list = invoices.filter((i) => i.projectId === project.id);
-  if (list.length === 0) return "none";
-  return list.some((i) => i.status !== "Paid") ? "Unpaid" : "Paid";
-}
+function paidOf(project, invoices) {
+    return invoices
+      .filter((i) => i.projectId === project.id && i.status === "Paid")
+      .reduce((total, i) => total + Number(i.amount), 0);
+  }
+  
+  const partialLabel = lang === "ar" ? "جزئي" : "Partial";
+  
+  function paymentCell(project, invoices) {
+    const list = invoices.filter((i) => i.projectId === project.id);
+    if (list.length === 0) return "—";
+  
+    const paid = paidOf(project, invoices);
+    let label = badge("Unpaid");
+    if (paid >= Number(project.price)) {
+      label = badge("Paid");
+    } else if (paid > 0) {
+      label = `<span class="badge partial">${partialLabel}</span>`;
+    }
+  
+    return label + `<div class="row-main"><small>${moneyText(paid)} / ${moneyText(project.price)}</small></div>`;
+  }
 
 function showClient(client, projects, invoices) {
   const projectIds = projects.map((p) => p.id);
@@ -100,7 +117,6 @@ function showClient(client, projects, invoices) {
   const subtitle = escapeHtml(client.phone) + " · " + escapeHtml(client.email);
 
   const rows = projects.map((p, i) => {
-    const payment = paymentOf(p, invoices);
     return `
       <tr>
         <td>
@@ -112,7 +128,7 @@ function showClient(client, projects, invoices) {
         <td class="amount">${moneyText(p.price)}</td>
         <td>${dateText(p.deadline)}</td>
         <td>${badge(p.status)}</td>
-        <td>${payment === "none" ? "—" : badge(payment)}</td>
+        <td>${paymentCell(p, invoices)}</td>
       </tr>
     `;
   }).join("");

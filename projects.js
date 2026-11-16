@@ -5,6 +5,7 @@ import {
   addDoc,
   getDocs,
   deleteDoc,
+  updateDoc,
   doc,
   query,
   where
@@ -41,6 +42,8 @@ const L = text[lang];
 let currentUser;
 let clients = [];
 let invoices = [];
+let projects = [];
+let editingId = null;
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
@@ -62,18 +65,36 @@ onAuthStateChanged(auth, async (user) => {
 async function loadProjects() {
   const q = query(collection(db, "projects"), where("userId", "==", currentUser.uid));
   const snapshot = await getDocs(q);
-  const projects = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+  projects = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
   projects.sort((a, b) => (a.deadline || "").localeCompare(b.deadline || ""));
-  showPage(projects);
+  showPage();
+}
+
+function paidOf(project) {
+  return invoices
+    .filter((i) => i.projectId === project.id && i.status === "Paid")
+    .reduce((total, i) => total + Number(i.amount), 0);
 }
 
 function paymentOf(project) {
   const list = invoices.filter((i) => i.projectId === project.id);
   if (list.length === 0) return "none";
-  return list.some((i) => i.status !== "Paid") ? "Unpaid" : "Paid";
+  const paid = paidOf(project);
+  if (paid >= Number(project.price)) return "Paid";
+  return paid > 0 ? "Partial" : "Unpaid";
 }
 
-function showPage(projects) {
+const partialLabel = lang === "ar" ? "جزئي" : "Partial";
+
+function paymentCell(project, payment) {
+  if (payment === "none") return "—";
+  const label = payment === "Partial" ? `<span class="badge partial">${partialLabel}</span>` : badge(payment);
+  return label + `<div class="row-main"><small>${moneyText(paidOf(project))} / ${moneyText(project.price)}</small></div>`;
+}
+
+function showPage() {
+  const editing = projects.find((p) => p.id === editingId);
+
   const rows = projects.map((p, i) => {
     const payment = paymentOf(p);
     const searchText = (p.title + " " + p.clientName + " " + p.status + " " + p.deadline).toLowerCase();
@@ -90,9 +111,12 @@ function showPage(projects) {
         <td class="amount">${moneyText(p.price)}</td>
         <td>${dateText(p.deadline)}</td>
         <td>${badge(p.status)}</td>
-        <td>${payment === "none" ? "—" : badge(payment)}</td>
+        <td>${paymentCell(p, payment)}</td>
         <td>
-          <button class="button ghost small danger" data-id="${p.id}" aria-label="${t("delete")}">${icon("trash", 15)}</button>
+          <div class="actions">
+            <button class="button ghost small" data-action="edit" data-id="${p.id}">${t("edit")}</button>
+            <button class="button ghost small danger" data-action="delete" data-id="${p.id}" aria-label="${t("delete")}">${icon("trash", 15)}</button>
+          </div>
         </td>
       </tr>
     `;
@@ -113,7 +137,7 @@ function showPage(projects) {
         <label for="paymentFilter">${L.payment}</label>
         <select id="paymentFilter">
           <option value="">${L.allPayments}</option>
-          <option value="Paid">${t("paid")}</option>
+          <option value="Partial">${partialLabel}</option>
           <option value="Unpaid">${t("unpaid")}</option>
         </select>
       </div>
@@ -164,7 +188,7 @@ function showPage(projects) {
         ${hasProjects ? filters + table : empty("noProjects", "noProjectsText", "projects")}
       </section>
       <aside class="panel form-panel">
-        <h2>${t("addProject")}</h2>
+        <h2>${editing ? t("editProject") : t("addProject")}</h2>
         <p>${t("addProjectSub")}</p>
         <form class="form-grid" id="projectForm">
           ${selectField("client", "clientId", clientOptions, "selectClient")}
@@ -180,13 +204,26 @@ function showPage(projects) {
             </select>
           </div>
           ${noClients ? `<div class="form-note">${t("needClient")}</div>` : ""}
-          <button class="button primary" type="submit" ${noClients ? "disabled" : ""}>${icon("plus", 15)} ${t("saveProject")}</button>
+          <button class="button primary" type="submit" ${noClients ? "disabled" : ""}>${icon(editing ? "check" : "plus", 15)} ${editing ? t("saveChanges") : t("saveProject")}</button>
+          ${editing ? `<button class="button" type="button" id="cancelEdit">${t("cancel")}</button>` : ""}
         </form>
       </aside>
     </div>
   `;
 
-  $("#projectForm").onsubmit = addProject;
+  $("#projectForm").onsubmit = saveProject;
+
+  if (editing) {
+    $("#clientId").value = editing.clientId;
+    $("#title").value = editing.title;
+    $("#price").value = editing.price;
+    $("#deadline").value = editing.deadline;
+    $("#projectStatus").value = editing.status;
+    $("#cancelEdit").onclick = () => {
+      editingId = null;
+      showPage();
+    };
+  }
 
   if (hasProjects) {
     ["projectSearch", "statusFilter", "paymentFilter", "fromDate", "toDate"].forEach((id) => {
@@ -196,14 +233,24 @@ function showPage(projects) {
     $("#projectSearch").disabled = true;
   }
 
-  document.querySelectorAll("button[data-id]").forEach((button) => {
-    button.onclick = async () => {
-      if (!confirm(t("deleteConfirm"))) return;
-      await deleteDoc(doc(db, "projects", button.dataset.id));
-      await loadProjects();
-      showToast(t("deleted"));
-    };
+  document.querySelectorAll("button[data-action]").forEach((button) => {
+    button.onclick = () => handleAction(button.dataset.action, button.dataset.id);
   });
+}
+
+async function handleAction(action, id) {
+  if (action === "edit") {
+    editingId = id;
+    showPage();
+    $("#projectForm").scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+
+  if (!confirm(t("deleteConfirm"))) return;
+  await deleteDoc(doc(db, "projects", id));
+  if (editingId === id) editingId = null;
+  await loadProjects();
+  showToast(t("deleted"));
 }
 
 function filterProjects() {
@@ -231,7 +278,7 @@ function filterProjects() {
   $("#noMatch").hidden = visible !== 0;
 }
 
-async function addProject(event) {
+async function saveProject(event) {
   event.preventDefault();
   const form = event.target;
   if (!form.reportValidity()) return;
@@ -239,16 +286,35 @@ async function addProject(event) {
   const values = Object.fromEntries(new FormData(form));
   const client = clients.find((c) => c.id === values.clientId);
 
-  await addDoc(collection(db, "projects"), {
+  const data = {
     clientId: values.clientId,
     clientName: client.name,
     title: values.title.trim(),
     price: Number(values.price),
     deadline: values.deadline,
-    status: values.status,
-    userId: currentUser.uid
-  });
+    status: values.status
+  };
 
+  if (editingId) {
+    await updateProject(editingId, data);
+    editingId = null;
+    await loadProjects();
+    showToast(t("updated"));
+    return;
+  }
+
+  await addDoc(collection(db, "projects"), { ...data, userId: currentUser.uid });
   await loadProjects();
   showToast(t("addedProject"));
+}
+
+async function updateProject(id, data) {
+  await updateDoc(doc(db, "projects", id), data);
+
+  // Keep the project title in its invoices up to date
+  const label = data.title + " (" + data.clientName + ")";
+  for (const inv of invoices.filter((i) => i.projectId === id)) {
+    await updateDoc(doc(db, "invoices", inv.id), { projectTitle: label });
+    inv.projectTitle = label;
+  }
 }
