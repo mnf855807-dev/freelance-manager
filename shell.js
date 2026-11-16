@@ -70,7 +70,9 @@ const translations = {
     deleteConfirm: "Delete this item?",
     addedClient: "Client added.", addedProject: "Project added.", addedInvoice: "Invoice added.",
     deleted: "Item deleted.", statusUpdated: "Invoice status updated.", error: "Please complete all required fields.",
-    moneyHint: "SAR", dateLocale: "en-US", arrow: "→"
+    moneyHint: "SAR", dateLocale: "en-US", arrow: "→",
+    edit: "Edit", cancel: "Cancel", saveChanges: "Save changes", updated: "Changes saved.",
+    editClient: "Edit client", editProject: "Edit project", editInvoice: "Edit invoice"
   },
   ar: {
     workspace: "مساحة العمل", workspaceTitle: "مساحة العمل",
@@ -111,7 +113,9 @@ const translations = {
     deleteConfirm: "هل تريد حذف هذا العنصر؟",
     addedClient: "تمت إضافة العميل.", addedProject: "تمت إضافة المشروع.", addedInvoice: "تمت إضافة الفاتورة.",
     deleted: "تم الحذف.", statusUpdated: "تم تحديث حالة الفاتورة.", error: "يرجى إكمال جميع الحقول المطلوبة.",
-    moneyHint: "ر.س", dateLocale: "ar-SA-u-ca-gregory", arrow: "←"
+    moneyHint: "ر.س", dateLocale: "ar-SA-u-ca-gregory", arrow: "←",
+    edit: "تعديل", cancel: "إلغاء", saveChanges: "حفظ التعديلات", updated: "تم حفظ التعديلات.",
+    editClient: "تعديل العميل", editProject: "تعديل المشروع", editInvoice: "تعديل الفاتورة"
   }
 };
 

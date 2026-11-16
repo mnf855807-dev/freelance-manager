@@ -5,6 +5,7 @@ import {
   addDoc,
   getDocs,
   deleteDoc,
+  updateDoc,
   doc,
   query,
   where
@@ -12,6 +13,8 @@ import {
 import { $, t, icon, escapeHtml, number, empty, heading, field, startShell, showToast } from "./shell.js";
 
 let currentUser;
+let clients = [];
+let editingId = null;
 
 onAuthStateChanged(auth, (user) => {
   if (!user) {
@@ -26,24 +29,30 @@ onAuthStateChanged(auth, (user) => {
 async function loadClients() {
   const q = query(collection(db, "clients"), where("userId", "==", currentUser.uid));
   const snapshot = await getDocs(q);
-  const clients = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+  clients = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
   clients.sort((a, b) => a.name.localeCompare(b.name));
-  showPage(clients);
+  showPage();
 }
 
-function showPage(clients) {
+function showPage() {
+  const editing = clients.find((c) => c.id === editingId);
+  const value = (key) => (editing ? 'value="' + escapeHtml(editing[key]) + '"' : "");
+
   const rows = clients.map((c) => `
     <tr data-search="${escapeHtml((c.name + " " + c.phone + " " + c.email).toLowerCase())}">
       <td>
         <div class="table-project">
           <span class="project-symbol">${escapeHtml(c.name.charAt(0).toUpperCase())}</span>
-         <a class="client-link" href="client.html?#${c.id}"><strong>${escapeHtml(c.name)}</strong></a>
+          <a class="client-link" href="client.html#${c.id}"><strong>${escapeHtml(c.name)}</strong></a>
         </div>
       </td>
       <td dir="auto">${escapeHtml(c.phone)}</td>
       <td dir="auto">${escapeHtml(c.email)}</td>
       <td>
-        <button class="button ghost small danger" data-id="${c.id}">${icon("trash", 15)} ${t("delete")}</button>
+        <div class="actions">
+          <button class="button ghost small" data-action="edit" data-id="${c.id}">${t("edit")}</button>
+          <button class="button ghost small danger" data-action="delete" data-id="${c.id}" aria-label="${t("delete")}">${icon("trash", 15)}</button>
+        </div>
       </td>
     </tr>
   `).join("");
@@ -72,29 +81,47 @@ function showPage(clients) {
         ${list}
       </section>
       <aside class="panel form-panel">
-        <h2>${t("addClient")}</h2>
+        <h2>${editing ? t("editClient") : t("addClient")}</h2>
         <p>${t("addClientSub")}</p>
         <form class="form-grid" id="clientForm">
-          ${field("fullName", "name", "text", t("namePlaceholder"), 'required maxlength="100"')}
-          ${field("phone", "phone", "tel", t("phonePlaceholder"), 'required maxlength="40"')}
-          ${field("email", "email", "email", t("emailPlaceholder"), 'required maxlength="120"')}
-          <button class="button primary" type="submit">${icon("plus", 15)} ${t("saveClient")}</button>
+          ${field("fullName", "name", "text", t("namePlaceholder"), 'required maxlength="100" ' + value("name"))}
+          ${field("phone", "phone", "tel", t("phonePlaceholder"), 'required maxlength="40" ' + value("phone"))}
+          ${field("email", "email", "email", t("emailPlaceholder"), 'required maxlength="120" ' + value("email"))}
+          <button class="button primary" type="submit">${icon(editing ? "check" : "plus", 15)} ${editing ? t("saveChanges") : t("saveClient")}</button>
+          ${editing ? `<button class="button" type="button" id="cancelEdit">${t("cancel")}</button>` : ""}
         </form>
       </aside>
     </div>
   `;
 
   $("#clientSearch").oninput = filterClients;
-  $("#clientForm").onsubmit = addClient;
+  $("#clientForm").onsubmit = saveClient;
 
-  document.querySelectorAll("button[data-id]").forEach((button) => {
-    button.onclick = async () => {
-      if (!confirm(t("deleteConfirm"))) return;
-      await deleteDoc(doc(db, "clients", button.dataset.id));
-      await loadClients();
-      showToast(t("deleted"));
+  if (editing) {
+    $("#cancelEdit").onclick = () => {
+      editingId = null;
+      showPage();
     };
+  }
+
+  document.querySelectorAll("button[data-action]").forEach((button) => {
+    button.onclick = () => handleAction(button.dataset.action, button.dataset.id);
   });
+}
+
+async function handleAction(action, id) {
+  if (action === "edit") {
+    editingId = id;
+    showPage();
+    $("#clientForm").scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+
+  if (!confirm(t("deleteConfirm"))) return;
+  await deleteDoc(doc(db, "clients", id));
+  if (editingId === id) editingId = null;
+  await loadClients();
+  showToast(t("deleted"));
 }
 
 function filterClients() {
@@ -111,20 +138,46 @@ function filterClients() {
   if (none) none.hidden = visible !== 0;
 }
 
-async function addClient(event) {
+async function saveClient(event) {
   event.preventDefault();
   const form = event.target;
   if (!form.reportValidity()) return;
 
   const values = Object.fromEntries(new FormData(form));
-
-  await addDoc(collection(db, "clients"), {
+  const data = {
     name: values.name.trim(),
     phone: values.phone.trim(),
-    email: values.email.trim(),
-    userId: currentUser.uid
-  });
+    email: values.email.trim()
+  };
 
+  if (editingId) {
+    await updateClient(editingId, data);
+    editingId = null;
+    await loadClients();
+    showToast(t("updated"));
+    return;
+  }
+
+  await addDoc(collection(db, "clients"), { ...data, userId: currentUser.uid });
   await loadClients();
   showToast(t("addedClient"));
+}
+
+async function updateClient(id, data) {
+  await updateDoc(doc(db, "clients", id), data);
+
+  // Keep the client name in their projects and invoices up to date
+  const projectSnap = await getDocs(query(collection(db, "projects"), where("userId", "==", currentUser.uid)));
+  const invoiceSnap = await getDocs(query(collection(db, "invoices"), where("userId", "==", currentUser.uid)));
+  const projects = projectSnap.docs.filter((d) => d.data().clientId === id);
+
+  for (const p of projects) {
+    await updateDoc(doc(db, "projects", p.id), { clientName: data.name });
+
+    const label = p.data().title + " (" + data.name + ")";
+    const projectInvoices = invoiceSnap.docs.filter((d) => d.data().projectId === p.id);
+    for (const i of projectInvoices) {
+      await updateDoc(doc(db, "invoices", i.id), { projectTitle: label });
+    }
+  }
 }
