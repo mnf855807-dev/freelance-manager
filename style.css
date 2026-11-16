@@ -348,3 +348,38 @@ label {
     background: #f3f4f6;
     color: #374151;
   }
+  #themeBtn {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 10;
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+  
+  [data-theme="dark"] {
+    --bg: #0f172a;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --border: #334155;
+    --sidebar: #020617;
+  }
+  
+  [data-theme="dark"] input,
+  [data-theme="dark"] select,
+  [data-theme="dark"] li,
+  [data-theme="dark"] .stat,
+  [data-theme="dark"] .card,
+  [data-theme="dark"] .auth-card,
+  [data-theme="dark"] button.secondary {
+    background: #1e293b;
+    color: var(--text);
+  }
+  
+  [data-theme="dark"] button.secondary:hover {
+    background: #334155;
+  }
+  
+  [data-theme="dark"] .card li {
+    background: #0f172a;
+  }
