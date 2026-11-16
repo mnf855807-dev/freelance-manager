@@ -250,6 +250,8 @@ export function startShell(page, user) {
       window.location.href = "login.html";
     });
   };
+
+  import("./helper.js").then((module) => module.startHelper(user));
 }
 export function heading(title, subtitle) {
     return `<div class="page-heading"><div><div class="eyebrow">${t("workspaceTitle")}</div><h1>${title}</h1><p>${subtitle}</p></div></div>`;

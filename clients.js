@@ -37,7 +37,7 @@ function showPage(clients) {
       <td>
         <div class="table-project">
           <span class="project-symbol">${escapeHtml(c.name.charAt(0).toUpperCase())}</span>
-          <strong>${escapeHtml(c.name)}</strong>
+         <a class="client-link" href="client.html?#${c.id}"><strong>${escapeHtml(c.name)}</strong></a>
         </div>
       </td>
       <td dir="auto">${escapeHtml(c.phone)}</td>
