@@ -9,9 +9,19 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <script>
+    document.documentElement.dataset.theme = localStorage.getItem("fm_theme") === "dark" ? "dark" : "light";
+    document.documentElement.dir = localStorage.getItem("fm_lang") === "ar" ? "rtl" : "ltr";
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script type="module" src="app.js"></script>
 </head>
 <body>
-  <div id="app"></div>
+  <div id="app">
+    <div class="app-shell">
+      <aside class="sidebar"></aside>
+      <div class="main-shell"><header class="topbar"></header><main></main></div>
+    </div>
+  </div>
 </body>
 </html>

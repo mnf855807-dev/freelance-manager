@@ -1,9 +1,9 @@
 import { auth } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { $, startApp, setActive } from "./shell.js";
+import { $, startApp, setActive, quickApp } from "./shell.js";
 
 // Pages that already run inside the single page. The others still open as normal pages.
-const converted = ["dashboard", "clients", "client", "projects", "invoices"];
+const converted = ["dashboard", "clients", "client", "projects", "invoices", "profile"];
 
 const navFor = {
   dashboard: "dashboard",
@@ -16,6 +16,7 @@ const navFor = {
 
 let currentUser;
 
+quickApp();
 onAuthStateChanged(auth, (user) => {
   if (!user) {
     window.location.href = "login.html";

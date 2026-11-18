@@ -55,30 +55,25 @@ let logoData = "";
 let logoWidth = 0;
 let logoHeight = 0;
 
-import { quickShell } from "./shell.js";
-quickShell("profile");
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    window.location.href = "login.html";
-    return;
+export async function show(user) {
+    currentUser = user;
+  
+    try {
+      const snapshot = await getDoc(doc(db, "profiles", user.uid));
+      profile = snapshot.exists() ? snapshot.data() : {};
+    } catch (error) {
+      profile = {};
+      showToast(L.loadError);
+    }
+  
+    logoData = profile.logo || "";
+    logoWidth = profile.logoWidth || 0;
+    logoHeight = profile.logoHeight || 0;
+    showPage();
   }
-  currentUser = user;
-  startShell("profile", user);
 
-  try {
-    const snapshot = await getDoc(doc(db, "profiles", user.uid));
-    profile = snapshot.exists() ? snapshot.data() : {};
-  } catch (error) {
-    showToast(L.loadError);
-  }
-
-  logoData = profile.logo || "";
-  logoWidth = profile.logoWidth || 0;
-  logoHeight = profile.logoHeight || 0;
-  showPage();
-});
-
-function showPage() {
+  function showPage() {
+    if (!location.hash.startsWith("#profile")) return;
   $("#mainContent").innerHTML = `
     ${heading(L.title, L.subtitle)}
     <section class="panel form-panel" style="max-width:560px">

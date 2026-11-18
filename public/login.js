@@ -119,7 +119,9 @@ function checkFields() {
   return true;
 }
 
-function goToDashboard() {
+function goToDashboard(result) {
+  const user = result.user;
+  localStorage.setItem('fm_user', JSON.stringify({ email: user.email, displayName: user.displayName }));
   window.location.href = 'index.html';
 }
 

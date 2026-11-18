@@ -299,9 +299,33 @@ export function startShell(page, user) {
   localStorage.setItem("fm_user", JSON.stringify({ email: user.email, displayName: user.displayName }));
   import("./helper.js").then((module) => module.startHelper(user));
 }
+let appEmail = null;
+
+export function quickApp() {
+  const saved = localStorage.getItem("fm_user");
+  if (!saved) return;
+
+  const name = location.hash.slice(1).split("/")[0];
+  const pages = ["dashboard", "clients", "projects", "invoices", "profile"];
+  const page = pages.includes(name) ? name : name === "client" ? "clients" : "dashboard";
+
+  try {
+    const user = JSON.parse(saved);
+    drawShell(page, user, true);
+    appEmail = user.email;
+  } catch (error) {
+    appEmail = null;
+  }
+}
+
 export function startApp(user) {
   localStorage.setItem("fm_user", JSON.stringify({ email: user.email, displayName: user.displayName }));
-  drawShell("dashboard", user, true);
+
+  if (appEmail !== user.email) {
+    drawShell("dashboard", user, true);
+    appEmail = user.email;
+  }
+
   import("./helper.js").then((module) => module.startHelper(user));
 }
 
