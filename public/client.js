@@ -27,18 +27,15 @@ const text = {
 };
 const L = text[lang];
 
-import { quickShell } from "./shell.js";
-quickShell("clients");
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    window.location.href = "login.html";
-    return;
-  }
+export async function show(user, clientId) {
+  const [clients, allProjects, invoices] = await Promise.all([
+    getList("clients", user),
+    getList("projects", user),
+    getList("invoices", user)
+  ]);
 
-  startShell("clients", user);
+  if (!location.hash.startsWith("#client/")) return;
 
-  const clientId = window.location.hash.slice(1);
-  const clients = await getList("clients", user);
   const client = clients.find((c) => c.id === clientId);
 
   if (!client) {
@@ -54,14 +51,11 @@ onAuthStateChanged(auth, async (user) => {
     return;
   }
 
-  const allProjects = await getList("projects", user);
-  const invoices = await getList("invoices", user);
-
   const projects = allProjects.filter((p) => p.clientId === clientId);
   projects.sort((a, b) => (a.deadline || "").localeCompare(b.deadline || ""));
 
   showClient(client, projects, invoices);
-});
+}
 
 async function getList(name, user) {
   const snapshot = await getDocs(query(collection(db, name), where("userId", "==", user.uid)));
@@ -151,7 +145,7 @@ function showClient(client, projects, invoices) {
        </div>`;
 
   $("#mainContent").innerHTML = `
-    <p><a class="panel-link" href="clients.html">${back} ${t("clients")}</a></p>
+    <p><a class="panel-link" href="#clients">${back} ${t("clients")}</a></p>
     <div class="page-heading">
       <div>
         <div class="eyebrow">${t("clients")}</div>

@@ -3,24 +3,16 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/f
 import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { $, t, icon, escapeHtml, number, money, moneyText, dateText, badge, empty, startShell, userName } from "./shell.js";
 
-import { quickShell } from "./shell.js";
-quickShell("dashboard");
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    window.location.href = "login.html";
-    return;
-  }
-
-  startShell("dashboard", user);
-
+export async function show(user) {
   const [clients, projects, invoices] = await Promise.all([
     getList("clients", user),
     getList("projects", user),
     getList("invoices", user)
   ]);
 
+  if (location.hash && location.hash !== "#dashboard") return;
   $("#mainContent").innerHTML = buildDashboard(user, clients, projects, invoices);
-});
+}
 
 async function getList(name, user) {
   const snapshot = await getDocs(query(collection(db, name), where("userId", "==", user.uid)));
@@ -158,7 +150,7 @@ function buildDashboard(user, clients, projects, invoices) {
       </div>
       <div class="heading-actions">
         <span class="button secondary">${icon("calendar", 15)} ${date}</span>
-        <a class="button primary" href="projects.html">${icon("plus", 16)} ${t("newProject")}</a>
+        <a class="button primary" href="#projects">${icon("plus", 16)} ${t("newProject")}</a>
       </div>
     </div>
 
@@ -183,7 +175,7 @@ function buildDashboard(user, clients, projects, invoices) {
       <article class="panel">
         <div class="panel-heading">
           <div><h2>${t("deadlines")}</h2><p>${t("deadlinesSub")}</p></div>
-          <a class="panel-link" href="projects.html">${t("viewAll")} ${t("arrow")}</a>
+          <a class="panel-link" href="#projects">${t("viewAll")} ${t("arrow")}</a>
         </div>
         ${deadlineList(upcoming)}
       </article>
@@ -192,7 +184,7 @@ function buildDashboard(user, clients, projects, invoices) {
     <section class="panel table-panel">
       <div class="panel-heading">
         <div><h2>${t("recentInvoices")}</h2><p>${t("recentSub")}</p></div>
-        <a class="panel-link" href="invoices.html">${t("viewAll")} ${t("arrow")}</a>
+        <a class="panel-link" href="#invoices">${t("viewAll")} ${t("arrow")}</a>
       </div>
       ${invoiceTable(recent, projects)}
     </section>

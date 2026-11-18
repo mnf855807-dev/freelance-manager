@@ -16,17 +16,11 @@ let currentUser;
 let clients = [];
 let editingId = null;
 
-import { quickShell } from "./shell.js";
-quickShell("clients");
-onAuthStateChanged(auth, (user) => {
-  if (!user) {
-    window.location.href = "login.html";
-    return;
-  }
+export async function show(user) {
   currentUser = user;
-  startShell("clients", user);
-  loadClients();
-});
+  editingId = null;
+  await loadClients();
+}
 
 async function loadClients() {
   const q = query(collection(db, "clients"), where("userId", "==", currentUser.uid));
@@ -37,6 +31,7 @@ async function loadClients() {
 }
 
 function showPage() {
+  if (!location.hash.startsWith("#clients")) return;
   const editing = clients.find((c) => c.id === editingId);
   const value = (key) => (editing ? 'value="' + escapeHtml(editing[key]) + '"' : "");
 
@@ -45,7 +40,7 @@ function showPage() {
       <td>
         <div class="table-project">
           <span class="project-symbol">${escapeHtml(c.name.charAt(0).toUpperCase())}</span>
-          <a class="client-link" href="client.html#${c.id}"><strong>${escapeHtml(c.name)}</strong></a>
+          <a class="client-link" href="#client/${c.id}"><strong>${escapeHtml(c.name)}</strong></a>
         </div>
       </td>
       <td dir="auto">${escapeHtml(c.phone)}</td>

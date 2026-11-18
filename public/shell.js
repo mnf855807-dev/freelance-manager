@@ -177,7 +177,7 @@ export function userName(user) {
   return name.replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-function drawShell(page, user) {
+function drawShell(page, user, spa = false) {
   const html = document.documentElement;
   html.lang = lang;
   html.dir = lang === "ar" ? "rtl" : "ltr";
@@ -186,14 +186,14 @@ function drawShell(page, user) {
 
   const name = userName(user);
   const links =["dashboard", "clients", "projects", "invoices", "profile"] .map((item) => `
-    <a href="${item}.html" class="nav-link ${item === page ? "active" : ""}">${icon(item, 17)}<span>${t(item)}</span></a>
+    <a href="${spa ? "#" + item : item + ".html"}" data-page="${item}" class="nav-link ${item === page ? "active" : ""}">${icon(item, 17)}<span>${t(item)}</span></a>
   `).join("");
 
   $("#app").innerHTML = `
     <div class="app-shell">
       <div class="mobile-overlay" id="mobileOverlay"></div>
       <aside class="sidebar" id="sidebar">
-        <a href="dashboard.html" class="brand">
+        <a href="${spa ? "#dashboard" : "dashboard.html"}" class="brand">
           <span class="brand-mark"><span></span><span></span><span></span></span>
           <span class="brand-copy"><strong>freelance<span>.</span></strong><small>MANAGER</small></span>
         </a>
@@ -216,7 +216,7 @@ function drawShell(page, user) {
         <header class="topbar">
           <div class="topbar-left">
             <button class="icon-button mobile-menu" id="menuButton" type="button" aria-label="Menu">${icon("menu", 20)}</button>
-            <div class="breadcrumb"><span>${t("workspaceTitle")}</span><span class="breadcrumb-sep">/</span><strong>${t(page)}</strong></div>
+            <div class="breadcrumb"><span>${t("workspaceTitle")}</span><span class="breadcrumb-sep">/</span><strong id="crumb">${t(page)}</strong></div>
           </div>
           <div class="topbar-actions">
             <button class="language-button" id="languageButton" type="button">${lang === "en" ? "عربي" : "EN"}</button>
@@ -298,4 +298,20 @@ export function startShell(page, user) {
 
   localStorage.setItem("fm_user", JSON.stringify({ email: user.email, displayName: user.displayName }));
   import("./helper.js").then((module) => module.startHelper(user));
+}
+export function startApp(user) {
+  localStorage.setItem("fm_user", JSON.stringify({ email: user.email, displayName: user.displayName }));
+  drawShell("dashboard", user, true);
+  import("./helper.js").then((module) => module.startHelper(user));
+}
+
+export function setActive(page) {
+  document.querySelectorAll(".nav-link").forEach((link) => {
+    link.classList.toggle("active", link.dataset.page === page);
+  });
+  $("#crumb").textContent = t(page);
+  document.title = t(page) + " — Freelance Manager";
+  $("#sidebar").classList.remove("open");
+  $("#mobileOverlay").classList.remove("open");
+  window.scrollTo(0, 0);
 }
