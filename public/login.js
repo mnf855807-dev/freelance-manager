@@ -3,7 +3,8 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
-  GoogleAuthProvider
+  GoogleAuthProvider,
+  sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const copy = {
@@ -24,7 +25,10 @@ const copy = {
     wrongLogin: 'Wrong email or password.',
     emailUsed: 'This email is already used.',
     weakPassword: 'Password must be at least 6 characters.',
-    genericError: 'Could not sign in. Please try again.'
+    genericError: 'Could not sign in. Please try again.',
+    forgot: 'Forgot password?',
+    resetEmail: 'Enter your email above first, then click "Forgot password?".',
+    resetSent: 'Reset link sent. Check your email (and your spam folder).'
   },
   ar: {
     appName: 'مدير العمل الحر', eyebrow: 'عملك، بكل ترتيب',
@@ -43,7 +47,10 @@ const copy = {
     wrongLogin: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.',
     emailUsed: 'هذا البريد الإلكتروني مستخدم بالفعل.',
     weakPassword: 'يجب أن تتكون كلمة المرور من 6 أحرف على الأقل.',
-    genericError: 'تعذّر تسجيل الدخول. حاول مرة أخرى.'
+    genericError: 'تعذّر تسجيل الدخول. حاول مرة أخرى.',
+    forgot: 'نسيت كلمة المرور؟',
+    resetEmail: 'أدخل بريدك الإلكتروني أعلاه أولاً، ثم اضغط "نسيت كلمة المرور؟".',
+    resetSent: 'تم إرسال رابط إعادة التعيين. تحقق من بريدك (ومن مجلد الرسائل غير المرغوبة).'
   }
 };
 
@@ -86,11 +93,19 @@ function setTheme(value) {
 }
 
 function showError(message) {
+  errorBox.classList.remove('success');
+  errorBox.textContent = message;
+  errorBox.hidden = false;
+}
+
+function showSuccess(message) {
+  errorBox.classList.add('success');
   errorBox.textContent = message;
   errorBox.hidden = false;
 }
 
 function hideError() {
+  errorBox.classList.remove('success');
   errorBox.hidden = true;
   errorBox.textContent = '';
 }
@@ -146,6 +161,18 @@ $('#createAccount').addEventListener('click', () => {
 $('#googleButton').addEventListener('click', () => {
   signInWithPopup(auth, new GoogleAuthProvider())
     .then(goToDashboard)
+    .catch(handleError);
+});
+
+$('#forgotPassword').addEventListener('click', () => {
+  hideError();
+  if (!emailField.value.trim() || !emailField.validity.valid) {
+    showError(translate('resetEmail'));
+    emailField.focus();
+    return;
+  }
+  sendPasswordResetEmail(auth, emailField.value.trim())
+    .then(() => showSuccess(translate('resetSent')))
     .catch(handleError);
 });
 

@@ -45,6 +45,8 @@ let invoices = [];
 let projects = [];
 let editingId = null;
 
+import { quickShell } from "./shell.js";
+quickShell("projects");
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "login.html";
@@ -53,13 +55,18 @@ onAuthStateChanged(auth, async (user) => {
   currentUser = user;
   startShell("projects", user);
 
-  const clientSnap = await getDocs(query(collection(db, "clients"), where("userId", "==", user.uid)));
+  const [clientSnap, invoiceSnap, projectSnap] = await Promise.all([
+    getDocs(query(collection(db, "clients"), where("userId", "==", user.uid))),
+    getDocs(query(collection(db, "invoices"), where("userId", "==", user.uid))),
+    getDocs(query(collection(db, "projects"), where("userId", "==", user.uid)))
+  ]);
+
   clients = clientSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
-
-  const invoiceSnap = await getDocs(query(collection(db, "invoices"), where("userId", "==", user.uid)));
   invoices = invoiceSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  projects = projectSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  projects.sort((a, b) => (a.deadline || "").localeCompare(b.deadline || ""));
 
-  loadProjects();
+  showPage();
 });
 
 async function loadProjects() {

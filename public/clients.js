@@ -16,6 +16,8 @@ let currentUser;
 let clients = [];
 let editingId = null;
 
+import { quickShell } from "./shell.js";
+quickShell("clients");
 onAuthStateChanged(auth, (user) => {
   if (!user) {
     window.location.href = "login.html";

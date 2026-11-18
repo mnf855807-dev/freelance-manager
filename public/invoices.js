@@ -6,6 +6,7 @@ import {
   getDocs,
   deleteDoc,
   updateDoc,
+  getDoc,
   doc,
   query,
   where
@@ -70,10 +71,13 @@ function filterInvoices() {
 
 let currentUser;
 let clients = [];
+let profile = {};
 let projects = [];
 let invoices = [];
 let editingId = null;
 
+import { quickShell } from "./shell.js";
+quickShell("invoices");
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "login.html";
@@ -82,13 +86,20 @@ onAuthStateChanged(auth, async (user) => {
   currentUser = user;
   startShell("invoices", user);
 
-  const projectSnap = await getDocs(query(collection(db, "projects"), where("userId", "==", user.uid)));
+  const [projectSnap, clientSnap, invoiceSnap, profileSnap] = await Promise.all([
+    getDocs(query(collection(db, "projects"), where("userId", "==", user.uid))),
+    getDocs(query(collection(db, "clients"), where("userId", "==", user.uid))),
+    getDocs(query(collection(db, "invoices"), where("userId", "==", user.uid))),
+    getDoc(doc(db, "profiles", user.uid)).catch(() => null)
+  ]);
+
   projects = projectSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
-
-  const clientSnap = await getDocs(query(collection(db, "clients"), where("userId", "==", user.uid)));
   clients = clientSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  invoices = invoiceSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  invoices.sort((a, b) => (b.dueDate || "").localeCompare(a.dueDate || ""));
+  profile = profileSnap && profileSnap.exists() ? profileSnap.data() : {};
 
-  loadInvoices();
+  showPage();
 });
 
 async function loadInvoices() {
@@ -332,6 +343,9 @@ function downloadPdf(inv) {
   const amount = Number(inv.amount).toFixed(2) + " SAR";
   const today = new Date().toISOString().slice(0, 10);
 
+  const businessName = profile.businessName || userName(currentUser);
+  const contactEmail = profile.email || currentUser.email;
+
   const purple = [98, 91, 246];
   const dark = [31, 36, 51];
   const gray = [120, 128, 145];
@@ -341,10 +355,22 @@ function downloadPdf(inv) {
   // Header
   pdf.setFillColor(...purple);
   pdf.rect(0, 0, 210, 44, "F");
+
+  let titleX = 20;
+  if (profile.logo) {
+    pdf.setFillColor(255, 255, 255);
+    pdf.roundedRect(20, 7, 30, 30, 3, 3, "F");
+    const scale = Math.min(26 / profile.logoWidth, 26 / profile.logoHeight);
+    const w = profile.logoWidth * scale;
+    const h = profile.logoHeight * scale;
+    pdf.addImage(profile.logo, "PNG", 35 - w / 2, 22 - h / 2, w, h);
+    titleX = 58;
+  }
+
   pdf.setTextColor(255, 255, 255);
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(26);
-  pdf.text("INVOICE", 20, 28);
+  pdf.text("INVOICE", titleX, 28);
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(11);
   pdf.text("#" + invoiceNo, 190, 22, { align: "right" });
@@ -360,14 +386,20 @@ function downloadPdf(inv) {
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(13);
   pdf.text(client ? client.name : "-", 20, 71);
-  pdf.text(userName(currentUser), 120, 71);
+  pdf.text(pdf.splitTextToSize(businessName, 70), 120, 71);
 
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(10);
   pdf.setTextColor(...gray);
   pdf.text(client ? client.phone : "", 20, 78);
   pdf.text(client ? client.email : "", 20, 84);
-  pdf.text(currentUser.email, 120, 78);
+
+  const fromLines = [];
+  if (profile.businessName && profile.ownerName) fromLines.push(profile.ownerName);
+  if (profile.phone) fromLines.push(profile.phone);
+  fromLines.push(contactEmail);
+  if (profile.address) fromLines.push(...pdf.splitTextToSize(profile.address, 70));
+  pdf.text(fromLines, 120, 78);
 
   // Details boxes
   const boxes = [
@@ -426,6 +458,18 @@ function downloadPdf(inv) {
   pdf.setFontSize(12);
   pdf.text(isPaid ? "0.00 SAR" : amount, 186, 200, { align: "right" });
 
+  // Payment details
+  if (profile.paymentNote) {
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(9);
+    pdf.setTextColor(...gray);
+    pdf.text("PAYMENT DETAILS", 20, 222);
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(10);
+    pdf.setTextColor(...dark);
+    pdf.text(pdf.splitTextToSize(profile.paymentNote, 170), 20, 230);
+  }
+
   // Footer
   pdf.setDrawColor(229, 231, 235);
   pdf.line(20, 272, 190, 272);
@@ -433,7 +477,7 @@ function downloadPdf(inv) {
   pdf.setFontSize(9);
   pdf.setTextColor(...gray);
   pdf.text("Thank you for your business.", 105, 280, { align: "center" });
-  pdf.text("Generated with Freelance Manager", 105, 286, { align: "center" });
+  pdf.text(businessName, 105, 286, { align: "center" });
 
   pdf.save(invoiceNo + ".pdf");
 }

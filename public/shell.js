@@ -23,7 +23,8 @@ const icons = {
   layers: '<path d="m12 2 9 5-9 5-9-5 9-5ZM3 12l9 5 9-5M3 17l9 5 9-5"/>',
   file: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8"/>',
   trash: '<path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m5 4v6m4-6v6"/>',
-  check: '<path d="m5 12 4 4L19 6"/>'
+  check: '<path d="m5 12 4 4L19 6"/>',
+  profile: '<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/>'
 };
 
 export function icon(name, size = 18) {
@@ -72,7 +73,8 @@ const translations = {
     deleted: "Item deleted.", statusUpdated: "Invoice status updated.", error: "Please complete all required fields.",
     moneyHint: "SAR", dateLocale: "en-US", arrow: "→",
     edit: "Edit", cancel: "Cancel", saveChanges: "Save changes", updated: "Changes saved.",
-    editClient: "Edit client", editProject: "Edit project", editInvoice: "Edit invoice"
+    editClient: "Edit client", editProject: "Edit project", editInvoice: "Edit invoice",
+    profile: "Business profile"
   },
   ar: {
     workspace: "مساحة العمل", workspaceTitle: "مساحة العمل",
@@ -115,7 +117,8 @@ const translations = {
     deleted: "تم الحذف.", statusUpdated: "تم تحديث حالة الفاتورة.", error: "يرجى إكمال جميع الحقول المطلوبة.",
     moneyHint: "ر.س", dateLocale: "ar-SA-u-ca-gregory", arrow: "←",
     edit: "تعديل", cancel: "إلغاء", saveChanges: "حفظ التعديلات", updated: "تم حفظ التعديلات.",
-    editClient: "تعديل العميل", editProject: "تعديل المشروع", editInvoice: "تعديل الفاتورة"
+    editClient: "تعديل العميل", editProject: "تعديل المشروع", editInvoice: "تعديل الفاتورة",
+    profile: "الملف التجاري"
   }
 };
 
@@ -174,7 +177,7 @@ export function userName(user) {
   return name.replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-export function startShell(page, user) {
+function drawShell(page, user) {
   const html = document.documentElement;
   html.lang = lang;
   html.dir = lang === "ar" ? "rtl" : "ltr";
@@ -182,7 +185,7 @@ export function startShell(page, user) {
   document.title = t(page) + " — Freelance Manager";
 
   const name = userName(user);
-  const links = ["dashboard", "clients", "projects", "invoices"].map((item) => `
+  const links =["dashboard", "clients", "projects", "invoices", "profile"] .map((item) => `
     <a href="${item}.html" class="nav-link ${item === page ? "active" : ""}">${icon(item, 17)}<span>${t(item)}</span></a>
   `).join("");
 
@@ -250,12 +253,13 @@ export function startShell(page, user) {
   };
 
   $("#logoutButton").onclick = () => {
+    localStorage.removeItem("fm_user");
     signOut(auth).then(() => {
       window.location.href = "login.html";
     });
   };
 
-  import("./helper.js").then((module) => module.startHelper(user));
+
 }
 export function heading(title, subtitle) {
     return `<div class="page-heading"><div><div class="eyebrow">${t("workspaceTitle")}</div><h1>${title}</h1><p>${subtitle}</p></div></div>`;
@@ -269,3 +273,29 @@ export function heading(title, subtitle) {
     const items = options.map((o) => `<option value="${escapeHtml(o.value)}">${escapeHtml(o.label)}</option>`).join("");
     return `<div class="field"><label for="${name}">${t(label)}</label><select id="${name}" name="${name}" required><option value="">${t(placeholder)}</option>${items}</select></div>`;
   }
+  let shellEmail = null;
+
+export function quickShell(page) {
+  const saved = localStorage.getItem("fm_user");
+  if (!saved) return;
+
+  let user;
+  try {
+    user = JSON.parse(saved);
+  } catch (error) {
+    return;
+  }
+
+  drawShell(page, user);
+  shellEmail = user.email;
+}
+
+export function startShell(page, user) {
+  if (shellEmail !== user.email) {
+    drawShell(page, user);
+    shellEmail = user.email;
+  }
+
+  localStorage.setItem("fm_user", JSON.stringify({ email: user.email, displayName: user.displayName }));
+  import("./helper.js").then((module) => module.startHelper(user));
+}

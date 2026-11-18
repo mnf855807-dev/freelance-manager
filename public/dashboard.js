@@ -3,6 +3,8 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/f
 import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { $, t, icon, escapeHtml, number, money, moneyText, dateText, badge, empty, startShell, userName } from "./shell.js";
 
+import { quickShell } from "./shell.js";
+quickShell("dashboard");
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "login.html";
@@ -11,9 +13,11 @@ onAuthStateChanged(auth, async (user) => {
 
   startShell("dashboard", user);
 
-  const clients = await getList("clients", user);
-  const projects = await getList("projects", user);
-  const invoices = await getList("invoices", user);
+  const [clients, projects, invoices] = await Promise.all([
+    getList("clients", user),
+    getList("projects", user),
+    getList("invoices", user)
+  ]);
 
   $("#mainContent").innerHTML = buildDashboard(user, clients, projects, invoices);
 });

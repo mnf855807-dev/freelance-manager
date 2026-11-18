@@ -27,6 +27,8 @@ const text = {
 };
 const L = text[lang];
 
+import { quickShell } from "./shell.js";
+quickShell("clients");
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "login.html";
