@@ -75,8 +75,10 @@ let profile = {};
 let projects = [];
 let invoices = [];
 let editingId = null;
+let highlightId = null;
 
-export async function show(user) {
+export async function show(user, invoiceId) {
+  highlightId = invoiceId || null;
   currentUser = user;
   editingId = null;
 
@@ -123,7 +125,7 @@ function showPage() {
     const projectTitle = project ? project.title : inv.projectTitle;
     const searchText = (projectTitle + " " + clientName + " INV-" + inv.id.slice(0, 4) + " " + inv.status + " " + inv.dueDate + " " + inv.amount).toLowerCase();
     return `
-      <tr data-text="${escapeHtml(searchText)}" data-status="${escapeHtml(inv.status)}" data-date="${escapeHtml(inv.dueDate || "")}">
+      <tr id="invoice-${inv.id}" data-text="${escapeHtml(searchText)}" data-status="${escapeHtml(inv.status)}" data-date="${escapeHtml(inv.dueDate || "")}">
         <td>
           <div class="table-project">
             <span class="project-symbol ${i % 3 === 1 ? "blue" : i % 3 === 2 ? "amber" : ""}">${icon("file", 15)}</span>
@@ -229,6 +231,15 @@ function showPage() {
 
   $("#invoiceForm").onsubmit = saveInvoice;
 
+
+  if (highlightId) {
+    const row = document.getElementById("invoice-" + highlightId);
+    highlightId = null;
+    if (row) {
+      row.scrollIntoView({ behavior: "smooth", block: "center" });
+      row.classList.add("row-highlight");
+    }
+  }
   if (invoices.length) {
     ["invoiceSearch", "invoiceStatusFilter", "invoiceFrom", "invoiceTo"].forEach((id) => {
       $("#" + id).oninput = filterInvoices;

@@ -268,3 +268,11 @@ main { max-width: 1540px; margin: 0 auto; padding: 34px var(--page-padding) 42px
   border-color: #6b3039;
   color: #ffb5bd;
 }
+.row-highlight td {
+  animation: rowFlash 3s ease-out;
+}
+
+@keyframes rowFlash {
+  0%, 60% { background: rgba(250, 204, 21, 0.3); }
+  100% { background: transparent; }
+}

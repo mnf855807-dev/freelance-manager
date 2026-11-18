@@ -196,13 +196,15 @@ const A = lang === "ar"
   ? {
       invoices: (n, total) => "لديك " + n + " فاتورة متأخرة، بإجمالي " + total + " غير مدفوع بعد تاريخ الاستحقاق.",
       projects: (n) => n + " مشروع تجاوز موعده النهائي ولم يكتمل.",
-      viewInvoices: "عرض الفواتير",
+      viewOne: "اذهب إلى الفاتورة",
+      viewOldest: "اذهب إلى الأقدم",
       viewProjects: "عرض المشاريع"
     }
   : {
       invoices: (n, total) => n + " overdue invoice" + (n === 1 ? "" : "s") + " — " + total + " unpaid past the due date.",
       projects: (n) => n + " project" + (n === 1 ? " is" : "s are") + " past the deadline and not done.",
-      viewInvoices: "View invoices",
+      viewOne: "Go to invoice",
+      viewOldest: "Go to the oldest",
       viewProjects: "View projects"
     };
 
@@ -222,9 +224,12 @@ function overdueBanner(invoices, projects) {
   if (lateInvoices.length) lines.push(A.invoices(lateInvoices.length, moneyText(sumAmount(lateInvoices))));
   if (lateProjects.length) lines.push(A.projects(lateProjects.length));
 
-  const link = lateInvoices.length
-    ? `<a href="#invoices">${A.viewInvoices}</a>`
-    : `<a href="#projects">${A.viewProjects}</a>`;
+  let link = `<a href="#projects">${A.viewProjects}</a>`;
+  if (lateInvoices.length) {
+    const oldest = [...lateInvoices].sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0];
+    const label = lateInvoices.length === 1 ? A.viewOne : A.viewOldest;
+    link = `<a href="#invoices/${oldest.id}">${label}</a>`;
+  }
 
   return `
     <div class="alert-banner" role="alert">
