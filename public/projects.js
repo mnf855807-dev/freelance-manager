@@ -45,15 +45,9 @@ let invoices = [];
 let projects = [];
 let editingId = null;
 
-import { quickShell } from "./shell.js";
-quickShell("projects");
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    window.location.href = "login.html";
-    return;
-  }
+export async function show(user) {
   currentUser = user;
-  startShell("projects", user);
+  editingId = null;
 
   const [clientSnap, invoiceSnap, projectSnap] = await Promise.all([
     getDocs(query(collection(db, "clients"), where("userId", "==", user.uid))),
@@ -67,7 +61,7 @@ onAuthStateChanged(auth, async (user) => {
   projects.sort((a, b) => (a.deadline || "").localeCompare(b.deadline || ""));
 
   showPage();
-});
+}
 
 async function loadProjects() {
   const q = query(collection(db, "projects"), where("userId", "==", currentUser.uid));
@@ -100,6 +94,7 @@ function paymentCell(project, payment) {
 }
 
 function showPage() {
+  if (!location.hash.startsWith("#projects")) return;
   const editing = projects.find((p) => p.id === editingId);
 
   const rows = projects.map((p, i) => {

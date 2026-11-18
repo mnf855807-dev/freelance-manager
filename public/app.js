@@ -3,7 +3,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/f
 import { $, startApp, setActive } from "./shell.js";
 
 // Pages that already run inside the single page. The others still open as normal pages.
-const converted = ["dashboard", "clients", "client"];
+const converted = ["dashboard", "clients", "client", "projects", "invoices"];
 
 const navFor = {
   dashboard: "dashboard",
