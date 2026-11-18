@@ -4,7 +4,8 @@ import {
   createUserWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const copy = {
@@ -119,11 +120,15 @@ function checkFields() {
   return true;
 }
 
-function goToDashboard(result) {
-  const user = result.user;
+function goToDashboard() {
+  // The page change happens below, once Firebase confirms the login
+}
+
+onAuthStateChanged(auth, (user) => {
+  if (!user) return;
   localStorage.setItem('fm_user', JSON.stringify({ email: user.email, displayName: user.displayName }));
   window.location.href = 'index.html';
-}
+});
 
 function handleError(error) {
   const map = {
