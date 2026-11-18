@@ -44,8 +44,10 @@ let clients = [];
 let invoices = [];
 let projects = [];
 let editingId = null;
+let highlightId = null;
 
-export async function show(user) {
+export async function show(user, projectId) {
+  highlightId = projectId || null;
   currentUser = user;
   editingId = null;
 
@@ -102,7 +104,7 @@ function showPage() {
     const searchText = (p.title + " " + p.clientName + " " + p.status + " " + p.deadline).toLowerCase();
 
     return `
-      <tr data-text="${escapeHtml(searchText)}" data-status="${escapeHtml(p.status)}" data-payment="${payment}" data-date="${escapeHtml(p.deadline || "")}">
+      <tr id="project-${p.id}" data-text="${escapeHtml(searchText)}" data-status="${escapeHtml(p.status)}" data-payment="${payment}" data-date="${escapeHtml(p.deadline || "")}">
         <td>
           <div class="table-project">
             <span class="project-symbol ${i % 3 === 1 ? "blue" : i % 3 === 2 ? "amber" : ""}">${icon("link", 15)}</span>
@@ -213,7 +215,15 @@ function showPage() {
     </div>
   `;
 
-  $("#projectForm").onsubmit = saveProject;
+
+  if (highlightId) {
+    const row = document.getElementById("project-" + highlightId);
+    highlightId = null;
+    if (row) {
+      row.scrollIntoView({ behavior: "smooth", block: "center" });
+      row.classList.add("row-highlight");
+    }
+  }
 
   if (editing) {
     $("#clientId").value = editing.clientId;

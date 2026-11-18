@@ -196,16 +196,18 @@ const A = lang === "ar"
   ? {
       invoices: (n, total) => "لديك " + n + " فاتورة متأخرة، بإجمالي " + total + " غير مدفوع بعد تاريخ الاستحقاق.",
       projects: (n) => n + " مشروع تجاوز موعده النهائي ولم يكتمل.",
-      viewOne: "اذهب إلى الفاتورة",
-      viewOldest: "اذهب إلى الأقدم",
-      viewProjects: "عرض المشاريع"
+      view: (n) => "عرض التنبيهات (" + n + ")",
+      invoiceTag: "فاتورة",
+      projectTag: "مشروع",
+      late: (n) => "متأخر " + n + " يوم"
     }
   : {
       invoices: (n, total) => n + " overdue invoice" + (n === 1 ? "" : "s") + " — " + total + " unpaid past the due date.",
       projects: (n) => n + " project" + (n === 1 ? " is" : "s are") + " past the deadline and not done.",
-      viewOne: "Go to invoice",
-      viewOldest: "Go to the oldest",
-      viewProjects: "View projects"
+      view: (n) => "View alerts (" + n + ")",
+      invoiceTag: "Invoice",
+      projectTag: "Project",
+      late: (n) => n + (n === 1 ? " day late" : " days late")
     };
 
 function today() {
@@ -213,29 +215,59 @@ function today() {
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 }
 
+function daysLate(date) {
+  const diff = new Date(today() + "T00:00:00") - new Date(date + "T00:00:00");
+  return Math.round(diff / 86400000);
+}
+
 function overdueBanner(invoices, projects) {
   const day = today();
   const lateInvoices = invoices.filter((i) => i.status !== "Paid" && i.dueDate && i.dueDate < day);
   const lateProjects = projects.filter((p) => p.status !== "Done" && p.deadline && p.deadline < day);
+  const total = lateInvoices.length + lateProjects.length;
 
-  if (!lateInvoices.length && !lateProjects.length) return "";
+  if (!total) return "";
 
   const lines = [];
   if (lateInvoices.length) lines.push(A.invoices(lateInvoices.length, moneyText(sumAmount(lateInvoices))));
   if (lateProjects.length) lines.push(A.projects(lateProjects.length));
 
-  let link = `<a href="#projects">${A.viewProjects}</a>`;
-  if (lateInvoices.length) {
-    const oldest = [...lateInvoices].sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0];
-    const label = lateInvoices.length === 1 ? A.viewOne : A.viewOldest;
-    link = `<a href="#invoices/${oldest.id}">${label}</a>`;
-  }
+  const items = [
+    ...lateInvoices.map((i) => ({
+      type: A.invoiceTag,
+      date: i.dueDate,
+      title: i.projectTitle,
+      detail: moneyText(i.amount),
+      link: "#invoices/" + i.id
+    })),
+    ...lateProjects.map((p) => ({
+      type: A.projectTag,
+      date: p.deadline,
+      title: p.title,
+      detail: p.clientName,
+      link: "#projects/" + p.id
+    }))
+  ].sort((a, b) => a.date.localeCompare(b.date));
+
+  const list = items.map((item) => `
+    <a class="alert-item" href="${item.link}">
+      <span class="alert-type">${item.type}</span>
+      <span class="alert-main">
+        <strong>${escapeHtml(item.title)}</strong>
+        <small>${escapeHtml(item.detail)}</small>
+      </span>
+      <span class="alert-days">${A.late(daysLate(item.date))}</span>
+    </a>
+  `).join("");
 
   return `
-    <div class="alert-banner" role="alert">
-      ${icon("clock", 18)}
-      <div>${lines.join("<br>")}</div>
-      ${link}
-    </div>
+    <details class="alert-box">
+      <summary class="alert-summary">
+        ${icon("clock", 18)}
+        <div>${lines.join("<br>")}</div>
+        <span class="alert-toggle">${A.view(total)}</span>
+      </summary>
+      <div class="alert-list">${list}</div>
+    </details>
   `;
 }
