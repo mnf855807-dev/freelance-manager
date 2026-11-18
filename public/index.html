@@ -14,6 +14,8 @@
     document.documentElement.dir = localStorage.getItem("fm_lang") === "ar" ? "rtl" : "ltr";
   </script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <link rel="preload" href="login.css" as="style">
+  <link rel="modulepreload" href="login.js">
   <script type="module" src="app.js"></script>
 </head>
 <body>

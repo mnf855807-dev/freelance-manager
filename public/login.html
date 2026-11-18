@@ -10,6 +10,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="login.css">
+  <link rel="preload" href="styles.css" as="style">
+  <link rel="modulepreload" href="firebase-config.js">
+  <link rel="modulepreload" href="shell.js">
+  <link rel="modulepreload" href="app.js">
   <script type="module" src="login.js"></script>
 </head>
 <body>
@@ -66,5 +70,12 @@
       </section>
     </section>
   </main>
+  <script>
+    document.body.dataset.theme = localStorage.getItem('fm_theme') === 'dark' ? 'dark' : 'light';
+    if (localStorage.getItem('fm_lang') === 'ar') {
+      document.documentElement.dir = 'rtl';
+      document.documentElement.lang = 'ar';
+    }
+  </script>
 </body>
 </html>
