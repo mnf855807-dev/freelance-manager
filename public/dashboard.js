@@ -1,7 +1,7 @@
 import { auth, db } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { $, t, icon, escapeHtml, number, money, moneyText, dateText, badge, empty, startShell, userName } from "./shell.js";
+import { $, t, lang, icon, escapeHtml, number, money, moneyText, dateText, badge, empty, startShell, userName } from "./shell.js";
 
 export async function show(user) {
   const [clients, projects, invoices] = await Promise.all([
@@ -154,6 +154,8 @@ function buildDashboard(user, clients, projects, invoices) {
       </div>
     </div>
 
+    ${overdueBanner(invoices, projects)}
+
     <section class="stats-grid">
       ${statCard("earned", paid, "allTime", "wallet", "green", true)}
       ${statCard("owed", owed, "awaiting", "clock", "red", true)}
@@ -188,5 +190,47 @@ function buildDashboard(user, clients, projects, invoices) {
       </div>
       ${invoiceTable(recent, projects)}
     </section>
+  `;
+}
+const A = lang === "ar"
+  ? {
+      invoices: (n, total) => "لديك " + n + " فاتورة متأخرة، بإجمالي " + total + " غير مدفوع بعد تاريخ الاستحقاق.",
+      projects: (n) => n + " مشروع تجاوز موعده النهائي ولم يكتمل.",
+      viewInvoices: "عرض الفواتير",
+      viewProjects: "عرض المشاريع"
+    }
+  : {
+      invoices: (n, total) => n + " overdue invoice" + (n === 1 ? "" : "s") + " — " + total + " unpaid past the due date.",
+      projects: (n) => n + " project" + (n === 1 ? " is" : "s are") + " past the deadline and not done.",
+      viewInvoices: "View invoices",
+      viewProjects: "View projects"
+    };
+
+function today() {
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+
+function overdueBanner(invoices, projects) {
+  const day = today();
+  const lateInvoices = invoices.filter((i) => i.status !== "Paid" && i.dueDate && i.dueDate < day);
+  const lateProjects = projects.filter((p) => p.status !== "Done" && p.deadline && p.deadline < day);
+
+  if (!lateInvoices.length && !lateProjects.length) return "";
+
+  const lines = [];
+  if (lateInvoices.length) lines.push(A.invoices(lateInvoices.length, moneyText(sumAmount(lateInvoices))));
+  if (lateProjects.length) lines.push(A.projects(lateProjects.length));
+
+  const link = lateInvoices.length
+    ? `<a href="#invoices">${A.viewInvoices}</a>`
+    : `<a href="#projects">${A.viewProjects}</a>`;
+
+  return `
+    <div class="alert-banner" role="alert">
+      ${icon("clock", 18)}
+      <div>${lines.join("<br>")}</div>
+      ${link}
+    </div>
   `;
 }

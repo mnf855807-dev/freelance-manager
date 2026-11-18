@@ -242,3 +242,29 @@ main { max-width: 1540px; margin: 0 auto; padding: 34px var(--page-padding) 42px
 .field input[type="file"] {
   padding: 8px;
 }
+.alert-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  border: 1px solid #f5c2c7;
+  border-radius: 12px;
+  background: #fdecee;
+  color: #a1202f;
+  font-size: 13px;
+}
+
+.alert-banner a {
+  margin-inline-start: auto;
+  font-weight: 600;
+  color: inherit;
+  text-decoration: underline;
+  white-space: nowrap;
+}
+
+[data-theme="dark"] .alert-banner {
+  background: #3a1d24;
+  border-color: #6b3039;
+  color: #ffb5bd;
+}
